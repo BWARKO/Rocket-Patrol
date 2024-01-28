@@ -27,6 +27,24 @@ class Play extends Phaser.Scene {
         keyRESET = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT)
+
+        // initialize score
+        this.p1Score = 0
+
+        // display score
+        let scoreConfig = {
+            fontFamily: 'Courier',
+            fontSize: '28px',
+            backgroundColor: '#F3B141',
+            color: '#843605',
+            align: 'right',
+            padding: {
+                top: 5,
+                bottom: 5,
+            },
+            fixedWidth: 100
+        }
+        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig)
     }
 
     update() {
@@ -43,17 +61,15 @@ class Play extends Phaser.Scene {
         // check collisions
         if(this.checkCollision(this.p1Rocket, this.ship01)) {
             this.p1Rocket.reset()
-            this.ship01.reset()
+            this.shipExplode(this.ship01)
         }
         if(this.checkCollision(this.p1Rocket, this.ship02)) {
             this.p1Rocket.reset()
-            this.ship02.reset()
-
+            this.shipExplode(this.ship02)
         }
         if(this.checkCollision(this.p1Rocket, this.ship03)) {
             this.p1Rocket.reset()
-            this.ship03.reset()
-
+            this.shipExplode(this.ship03)
         }
     }
 
@@ -67,5 +83,21 @@ class Play extends Phaser.Scene {
         } else {
             false
         }
+    }
+
+    shipExplode(ship) {
+        // temporarily hide ship
+        ship.alpha = 0
+        // create explosion sprite at ship's position
+        let boom = this.add.sprite(ship.x, ship.y, 'explode').setOrigin(0, 0);
+        boom.anims.play('explode')            // play explode animation
+        boom.on('animationcomplete', () => {    // callback when anim complete
+            ship.reset()                        // reset ship pos
+            ship.alpha = 1                      // make ship visibile
+            boom.destroy()                      // remove explosion sprite
+        })
+        // score add text and update
+        this.p1Score += ship.points
+        this.scoreLeft.text = this.p1Score
     }
 }
