@@ -45,18 +45,39 @@ class Play extends Phaser.Scene {
             fixedWidth: 100
         }
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig)
+
+        // GAME OVER Flag
+        this.gameOver = false
+
+        // 60-sec play clock
+        scoreConfig.fixedWidth = 0
+        this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
+            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5)
+            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', scoreConfig).setOrigin(0.5)
+            this.gameOver = true
+        }, null, this)
     }
 
     update() {
         this.starfield.tilePositionX -= 4
 
-        // update rocket
-        this.p1Rocket.update()
+        if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyRESET)) {
+            this.scene.restart()
+        }
+        if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyLEFT)) {
+            this.scene.start('menuScene')
+        }
 
-        // update spaceships (x3)
-        this.ship01.update()
-        this.ship02.update()
-        this.ship03.update()
+        // make sure game isnt over
+        if(!this.gameOver) {
+            // update rocket
+            this.p1Rocket.update()
+
+            // update spaceships (x3)
+            this.ship01.update()
+            this.ship02.update()
+            this.ship03.update()
+        }
 
         // check collisions
         if(this.checkCollision(this.p1Rocket, this.ship01)) {
@@ -99,5 +120,8 @@ class Play extends Phaser.Scene {
         // score add text and update
         this.p1Score += ship.points
         this.scoreLeft.text = this.p1Score
+
+        // play explosion audio
+        this.sound.play('sfx-explosion')
     }
 }
